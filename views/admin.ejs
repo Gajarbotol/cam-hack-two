@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page</title>
+</head>
+<body>
+    <h1>Admin Page</h1>
+    <h2>Uploaded Images</h2>
+    <ul>
+        <% images.forEach(image => { %>
+        <li>
+            <img src="/static/<%= image %>" alt="Uploaded Image" width="100">
+            <form action="/delete/<%= image %>" method="post">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+        <% }) %>
+    </ul>
+    <h2>Set Redirect URLs</h2>
+    <form action="/set_redirect_urls" method="post">
+        <div id="urlFields">
+            <% Object.entries(redirectUrls).forEach(([id, url]) => { %>
+            <div>
+                <label>ID: <input type="text" name="ids" value="<%= id %>"></label>
+                <label>URL: <input type="text" name="urls" value="<%= url %>"></label>
+            </div>
+            <% }) %>
+        </div>
+        <button type="button" onclick="addUrlField()">Add Another URL</button>
+        <button type="submit">Save URLs</button>
+    </form>
+    <script>
+        function addUrlField() {
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label>ID: <input type="text" name="ids"></label>
+                <label>URL: <input type="text" name="urls"></label>
+            `;
+            document.getElementById('urlFields').appendChild(div);
+        }
+    </script>
+</body>
+</html>
